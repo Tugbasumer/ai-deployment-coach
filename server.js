@@ -16,7 +16,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "healthy", uptime: process.uptime() });
 });
 
-app.get("/examples", (req, res) => {
+app.use((req, res) => {
   res.json({
     examples: [
       "React + Node.js, 10k users/day",
