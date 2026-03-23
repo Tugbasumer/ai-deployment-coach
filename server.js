@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ─── Routes ────────────────────────────────────────────────────────────────────
-app.get("/", (req, res) => {
+app.get('/*', (req, res) => {
   res.json({ status: "ok", message: "AI Deployment Coach API 🚀", version: "2.0.0" });
 });
 
