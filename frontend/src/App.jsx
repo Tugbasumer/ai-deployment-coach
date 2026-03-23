@@ -2,9 +2,8 @@ import { useState, useCallback } from "react";
 import "./index.css";
 import CVBuilder from "./CVBuilder.jsx";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ai-deployment-coach.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-fetch(`${API_URL}/analyze`)
 const EXAMPLES = [
   "React + Node.js, 10k users/day",
   "Python Flask + AI model, GPU needed",
