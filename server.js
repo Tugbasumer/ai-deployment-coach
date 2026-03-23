@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
@@ -8,6 +10,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// __dirname tanımı (ES module için gerekli)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ─── Routes ────────────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "AI Deployment Coach API 🚀", version: "2.0.0" });
 });
@@ -33,7 +40,6 @@ app.get("/examples", (req, res) => {
 function analyzeDeployment(input) {
   const t = input.toLowerCase();
 
-  // === Platform Detection ===
   let platform = "Vercel";
   let platformTag = "Recommended";
 
@@ -63,7 +69,6 @@ function analyzeDeployment(input) {
     platformTag = "Enterprise";
   }
 
-  // === Traffic / User Scale ===
   const hasHighTraffic =
     t.includes("10k") || t.includes("50k") || t.includes("100k") ||
     t.includes("10000") || t.includes("50000") || t.includes("100000") ||
@@ -73,7 +78,6 @@ function analyzeDeployment(input) {
     t.includes("5k") || t.includes("1k") || t.includes("5000") ||
     t.includes("1000") || t.includes("thousands");
 
-  // === Cost Estimation ===
   let cost = "$0-5/month";
   let costTag = "Free Tier";
 
@@ -97,7 +101,6 @@ function analyzeDeployment(input) {
     costTag = "Free";
   }
 
-  // === Risk Level ===
   let risk = "Low – straightforward deployment";
   let riskTag = "Low Risk";
   let riskColor = "green";
@@ -116,7 +119,6 @@ function analyzeDeployment(input) {
     riskColor = "orange";
   }
 
-  // === Scaling Advice ===
   let scaling = "No scaling needed — free tier is sufficient";
   let scalingTag = "No Action";
 
@@ -134,104 +136,10 @@ function analyzeDeployment(input) {
     scalingTag = "Monitor";
   }
 
-  // === Step-by-Step Plan ===
-  const steps = buildSteps(t, platform);
-
-  // === Pro Tips ===
-  const tips = buildTips(t);
-
-  return {
-    platform,
-    platformTag,
-    cost,
-    costTag,
-    risk,
-    riskTag,
-    riskColor,
-    scaling,
-    scalingTag,
-    steps,
-    tips,
-  };
+  return { platform, platformTag, cost, costTag, risk, riskTag, riskColor, scaling, scalingTag };
 }
 
-function buildSteps(t, platform) {
-  const steps = [];
-
-  // Frontend
-  if (t.includes("react") || t.includes("vue") || t.includes("next") || t.includes("svelte") || t.includes("nuxt")) {
-    steps.push("Run `npm run build` to generate a production bundle");
-    steps.push("Deploy frontend to Vercel via GitHub integration or Vercel CLI");
-  } else if (t.includes("static") || t.includes("html")) {
-    steps.push("Deploy static files to Netlify (drag & drop or Git-connected)");
-  }
-
-  // Backend
-  if (t.includes("node") || t.includes("express") || t.includes("backend")) {
-    steps.push("Push backend to GitHub; connect repo to Render.com");
-    steps.push("Set all environment variables in Render's dashboard");
-    steps.push("Enable auto-deploy on push to main branch");
-  }
-
-  if (t.includes("python") || t.includes("flask") || t.includes("django") || t.includes("fastapi")) {
-    steps.push("Create a `requirements.txt` and add a `Procfile` for the Python server");
-    steps.push("Deploy to Railway or Render; set SECRET_KEY and DB_URL env vars");
-  }
-
-  // Database
-  if (t.includes("postgres") || t.includes("postgresql")) {
-    steps.push("Provision a PostgreSQL instance on Supabase or Railway");
-    steps.push("Set DATABASE_URL environment variable and run migrations");
-  } else if (t.includes("mongo") || t.includes("mongodb")) {
-    steps.push("Create a MongoDB Atlas cluster (free tier available)");
-    steps.push("Whitelist server IP and set MONGO_URI environment variable");
-  } else if (t.includes("database") || t.includes("db")) {
-    steps.push("Choose a managed database provider (PlanetScale, Supabase, or MongoDB Atlas)");
-  }
-
-  // AI/ML steps
-  if (t.includes("ai") || t.includes("ml") || t.includes("gpu") || t.includes("model")) {
-    steps.push("Package your AI model and upload to Hugging Face Hub or S3");
-    steps.push("Deploy to a GPU-enabled instance (RunPod or AWS EC2 p3)");
-    steps.push("Expose as API endpoint and add request throttling / rate limiting");
-  }
-
-  // Generic tail steps
-  if (t.includes("docker")) {
-    steps.push("Build and tag your Docker image; push to Docker Hub or AWS ECR");
-    steps.push("Deploy container to your cloud platform and configure health checks");
-  }
-
-  steps.push("Set up a custom domain and enable HTTPS via Let's Encrypt / Cloudflare");
-  steps.push("Configure monitoring alerts (UptimeRobot + Sentry for error tracking)");
-
-  return steps;
-}
-
-function buildTips(t) {
-  const tips = [];
-
-  if (t.includes("react") || t.includes("vue") || t.includes("next")) {
-    tips.push("Use Lighthouse CI in your GitHub Actions pipeline to catch performance regressions before deploy");
-  }
-  if (t.includes("database") || t.includes("postgres") || t.includes("mongo")) {
-    tips.push("Always enable automated daily backups before going to production — recovery is priceless");
-  }
-  if (t.includes("ai") || t.includes("ml")) {
-    tips.push("Cache your model in memory between requests to reduce cold start latency by up to 80%");
-  }
-  if (t.includes("node") || t.includes("python")) {
-    tips.push("Use a `.env.example` file in your repo so future contributors know what variables are needed");
-  }
-  tips.push("Implement a `/health` endpoint — essential for uptime monitoring and load balancer readiness probes");
-  if (!t.includes("enterprise")) {
-    tips.push("Start on a free/hobby tier, set a budget alert, and scale up only when metrics demand it");
-  }
-
-  return tips.slice(0, 3); // Return max 3 tips
-}
-
-// ─── Routes ────────────────────────────────────────────────────────────────────
+// ─── API Route ────────────────────────────────────────────────────────────────
 app.post("/analyze", (req, res) => {
   const { prompt } = req.body;
   if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
@@ -241,7 +149,15 @@ app.post("/analyze", (req, res) => {
   res.json(result);
 });
 
+// ─── FRONTEND SERVE (EN KRİTİK KISIM) ─────────────────────────────────────────
+app.use(express.static(path.join(__dirname, "frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
+});
+
+// ─── SERVER START ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\n🚀 AI Deployment Coach API running on http://localhost:${PORT}\n`);
+  console.log(`🚀 AI Deployment Coach running on port ${PORT}`);
 });
